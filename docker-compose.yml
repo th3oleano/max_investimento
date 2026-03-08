@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  robocris:
+    build: .
+    container_name: robocris
+    restart: unless-stopped
+    # Se precisar de variáveis de ambiente, adicione aqui
+    # environment:
+    #   - VAR=valor
