@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import re
+import logging
 import asyncio
 from telegram import Bot
 from telegram.constants import ParseMode
@@ -9,6 +10,8 @@ from telegram.helpers import escape_markdown
 import yfinance as yf
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
 
 # =======================
 # Configurações
@@ -66,45 +69,53 @@ def extrair_cotacao_ppvp(url):
 
 async def enviar_fii(bot, fii):
     url = BASE_URL + fii + "/"
-    print(f"[LOG] Buscando FII: {fii} - URL: {url}")
-    cotacao, pvp = extrair_cotacao_ppvp(url)
-    print(f"[LOG] {fii.upper()} - Cotação: {cotacao} | P/VP: {pvp}")
-    mensagem = (
-        f"🏢 {fii.upper()}\n"
-        f"💵 Cotação: R$ {cotacao}\n"
-        f"📊 P/VP: {pvp}"
-    )
-    mensagem_escapada = escape_markdown(mensagem, version=2)
-    await bot.send_message(chat_id=CHAT_ID, text=mensagem_escapada, parse_mode=ParseMode.MARKDOWN_V2)
+    logging.info(f"Buscando FII: {fii} - URL: {url}")
+    try:
+        cotacao, pvp = extrair_cotacao_ppvp(url)
+        logging.info(f"{fii.upper()} - Cotação: {cotacao} | P/VP: {pvp}")
+        mensagem = (
+            f"🏢 {fii.upper()}\n"
+            f"💵 Cotação: R$ {cotacao}\n"
+            f"📊 P/VP: {pvp}"
+        )
+        mensagem_escapada = escape_markdown(mensagem, version=2)
+        await bot.send_message(chat_id=CHAT_ID, text=mensagem_escapada, parse_mode=ParseMode.MARKDOWN_V2)
+        logging.info(f"Mensagem enviada para o Telegram: {mensagem.replace(chr(10), ' | ')}")
+    except Exception as e:
+        logging.error(f"Erro ao enviar FII {fii}: {e}")
 
 async def enviar_acao(bot, ticker_str):
-    print(f"[LOG] Buscando ação: {ticker_str}")
-    ticker = yf.Ticker(ticker_str)
-    info = ticker.info
+    logging.info(f"Buscando ação: {ticker_str}")
+    try:
+        ticker = yf.Ticker(ticker_str)
+        info = ticker.info
 
-    cotacao = info.get("currentPrice")
-    pl = info.get("trailingPE")
-    pvp = info.get("priceToBook")
+        cotacao = info.get("currentPrice")
+        pl = info.get("trailingPE")
+        pvp = info.get("priceToBook")
 
-    nome_acao = ticker_str.replace(".SA", "").upper()
+        nome_acao = ticker_str.replace(".SA", "").upper()
 
-    cotacao_str = f"R$ {cotacao:.2f}" if cotacao else "N/A"
-    pl_str = f"{pl:.2f}" if pl else "N/A"
-    pvp_str = f"{pvp:.2f}" if pvp else "N/A"
+        cotacao_str = f"R$ {cotacao:.2f}" if cotacao else "N/A"
+        pl_str = f"{pl:.2f}" if pl else "N/A"
+        pvp_str = f"{pvp:.2f}" if pvp else "N/A"
 
-    print(f"[LOG] {nome_acao} - Cotação: {cotacao_str} | P/L: {pl_str} | P/VP: {pvp_str}")
+        logging.info(f"{nome_acao} - Cotação: {cotacao_str} | P/L: {pl_str} | P/VP: {pvp_str}")
 
-    mensagem = (
-        f"📈 {nome_acao}\n"
-        f"💵 Cotação: {cotacao_str}\n"
-        f"📊 P/L: {pl_str}\n"
-        f"📉 P/VP: {pvp_str}"
-    )
-    mensagem_escapada = escape_markdown(mensagem, version=2)
-    await bot.send_message(chat_id=CHAT_ID, text=mensagem_escapada, parse_mode=ParseMode.MARKDOWN_V2)
+        mensagem = (
+            f"📈 {nome_acao}\n"
+            f"💵 Cotação: {cotacao_str}\n"
+            f"📊 P/L: {pl_str}\n"
+            f"📉 P/VP: {pvp_str}"
+        )
+        mensagem_escapada = escape_markdown(mensagem, version=2)
+        await bot.send_message(chat_id=CHAT_ID, text=mensagem_escapada, parse_mode=ParseMode.MARKDOWN_V2)
+        logging.info(f"Mensagem enviada para o Telegram: {mensagem.replace(chr(10), ' | ')}")
+    except Exception as e:
+        logging.error(f"Erro ao enviar ação {ticker_str}: {e}")
 
 async def enviar_relatorio():
-    print("[LOG] Iniciando envio do relatório...")
+    logging.info("Iniciando envio do relatório...")
     bot = Bot(token=TOKEN)
     for acao in ACOES:
         await enviar_acao(bot, acao)
@@ -113,7 +124,7 @@ async def enviar_relatorio():
     for fii in FIIS:
         await enviar_fii(bot, fii)
         await asyncio.sleep(3)
-    print("[LOG] Relatório finalizado.")
+    logging.info("Relatório finalizado.")
 
 # =======================
 # Agendamento
@@ -130,7 +141,7 @@ def agendar(scheduler):
   
 
     scheduler.start()
-    print("✅ Agendamentos iniciados.")
+    logging.info("Agendamentos iniciados.")
 
 # =======================
 # Loop principal
@@ -142,7 +153,7 @@ async def main():
     try:
         await asyncio.Event().wait()  # Mantém o script rodando
     except (KeyboardInterrupt, SystemExit):
-        print("⛔ Encerrando...")
+        logging.info("Encerrando...")
         scheduler.shutdown()
 
 if __name__ == "__main__":
