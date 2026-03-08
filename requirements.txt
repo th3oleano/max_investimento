@@ -1,2 +1,8 @@
 # Python environment configuration for Redimento
 # This file is used to ensure a Python environment is set up for the project.
+
+requests
+beautifulsoup4
+python-telegram-bot
+yfinance
+apscheduler
