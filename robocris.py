@@ -120,14 +120,17 @@ async def enviar_relatorio():
 # =======================
 
 def agendar(scheduler):
-    # Agenda para rodar a cada 5 segundos (para testes)
+    # Agenda principal (segunda e sexta às 10h30)
     scheduler.add_job(
         enviar_relatorio,
-        trigger=CronTrigger(second="*/5"),
-        name="Relatório a cada 5 segundos"
+        trigger=CronTrigger(day_of_week='mon,fri', hour=10, minute=30),
+        name="Relatório seg/sex 10h30"
     )
+
+  
+
     scheduler.start()
-    print("✅ Agendamento a cada 5 segundos iniciado.")
+    print("✅ Agendamentos iniciados.")
 
 # =======================
 # Loop principal
