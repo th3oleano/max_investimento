@@ -66,7 +66,9 @@ def extrair_cotacao_ppvp(url):
 
 async def enviar_fii(bot, fii):
     url = BASE_URL + fii + "/"
+    print(f"[LOG] Buscando FII: {fii} - URL: {url}")
     cotacao, pvp = extrair_cotacao_ppvp(url)
+    print(f"[LOG] {fii.upper()} - Cotação: {cotacao} | P/VP: {pvp}")
     mensagem = (
         f"🏢 {fii.upper()}\n"
         f"💵 Cotação: R$ {cotacao}\n"
@@ -76,6 +78,7 @@ async def enviar_fii(bot, fii):
     await bot.send_message(chat_id=CHAT_ID, text=mensagem_escapada, parse_mode=ParseMode.MARKDOWN_V2)
 
 async def enviar_acao(bot, ticker_str):
+    print(f"[LOG] Buscando ação: {ticker_str}")
     ticker = yf.Ticker(ticker_str)
     info = ticker.info
 
@@ -89,6 +92,8 @@ async def enviar_acao(bot, ticker_str):
     pl_str = f"{pl:.2f}" if pl else "N/A"
     pvp_str = f"{pvp:.2f}" if pvp else "N/A"
 
+    print(f"[LOG] {nome_acao} - Cotação: {cotacao_str} | P/L: {pl_str} | P/VP: {pvp_str}")
+
     mensagem = (
         f"📈 {nome_acao}\n"
         f"💵 Cotação: {cotacao_str}\n"
@@ -99,6 +104,7 @@ async def enviar_acao(bot, ticker_str):
     await bot.send_message(chat_id=CHAT_ID, text=mensagem_escapada, parse_mode=ParseMode.MARKDOWN_V2)
 
 async def enviar_relatorio():
+    print("[LOG] Iniciando envio do relatório...")
     bot = Bot(token=TOKEN)
     for acao in ACOES:
         await enviar_acao(bot, acao)
@@ -107,23 +113,21 @@ async def enviar_relatorio():
     for fii in FIIS:
         await enviar_fii(bot, fii)
         await asyncio.sleep(3)
+    print("[LOG] Relatório finalizado.")
 
 # =======================
 # Agendamento
 # =======================
 
 def agendar(scheduler):
-    # Agenda principal (segunda e sexta às 10h30)
+    # Agenda para rodar a cada 5 segundos (para testes)
     scheduler.add_job(
         enviar_relatorio,
-        trigger=CronTrigger(day_of_week='mon,fri', hour=10, minute=30),
-        name="Relatório seg/sex 10h30"
+        trigger=CronTrigger(second="*/5"),
+        name="Relatório a cada 5 segundos"
     )
-
-  
-
     scheduler.start()
-    print("✅ Agendamentos iniciados.")
+    print("✅ Agendamento a cada 5 segundos iniciado.")
 
 # =======================
 # Loop principal
