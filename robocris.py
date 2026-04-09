@@ -16,8 +16,8 @@ logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(m
 # =======================
 # Configurações 
 # =======================
-TOKEN = "7549385934:AAFH5fx6j7qdx0H1v6VHpz0tjG8NAKu9zRw"
-CHAT_ID = -1002336238340
+TOKEN = "<YOUR_TELEGRAM_BOT_TOKEN>"
+CHAT_ID = -XXXXXX
 BASE_URL = "https://investidor10.com.br/fiis/"
 FIIS = ["gare11", "hglg11", "visc11", "xpml11", "knca11", "mxrf11", "vgia11"]
 ACOES = ["BBAS3.SA", "BBSE3.SA", "ISAE4.SA", "KLBN4.SA", "SAPR4.SA"]
