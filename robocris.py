@@ -10,14 +10,15 @@ from telegram.helpers import escape_markdown
 import yfinance as yf
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from pytz import timezone
 
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
 
 # =======================
-# Configurações 
+# Configurações
 # =======================
-TOKEN = "<YOUR_TELEGRAM_BOT_TOKEN>"
-CHAT_ID = <YOUR_TELEGRAM_CHAT_ID>
+TOKEN = "7549385934:AAFH5fx6j7qdx0H1v6VHpz0tjG8NAKu9zRw"
+CHAT_ID = -1002336238340
 BASE_URL = "https://investidor10.com.br/fiis/"
 FIIS = ["gare11", "hglg11", "visc11", "xpml11", "knca11", "mxrf11", "vgia11"]
 ACOES = ["BBAS3.SA", "BBSE3.SA", "ISAE4.SA", "KLBN4.SA", "SAPR4.SA"]
@@ -130,11 +131,12 @@ async def enviar_relatorio():
 # Agendamento
 # =======================
 
+
 def agendar(scheduler):
-    # Agenda principal (segunda e sexta às 10h30)
+    # Agenda principal (segunda e sexta às 10h30, horário de Brasília)
     scheduler.add_job(
         enviar_relatorio,
-        trigger=CronTrigger(day_of_week='mon,fri', hour=10, minute=30),
+        trigger=CronTrigger(day_of_week='mon,fri', hour=10, minute=30, timezone=timezone('America/Sao_Paulo')),
         name="Relatório seg/sex 10h30"
     )
 
